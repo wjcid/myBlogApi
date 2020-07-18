@@ -1,0 +1,15 @@
+{
+    "name": "SEA_SAND_DATABASE",
+    "version": "1.0.0",
+    "description": "api接口",
+    "title": "API接口",
+    "url": "http://tp6.com/api",
+    "header": {
+      "title": "API",
+      "filename": ""
+    },
+    "template": {
+      "withCompare": true,
+      "withGenerator": false
+    }
+  }
