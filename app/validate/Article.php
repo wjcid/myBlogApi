@@ -32,7 +32,7 @@ class Article extends Validate
     
     protected $scene = [
         'list'  =>  ['type'],
-        'add'  =>  ['type','title','pic_url','content','tag'],
+        'add'  =>  ['type','title','pic_url','content'],
         'edit'  =>  ['id','type','title','pic_url','content','tag'],
         'del' => ['id'],
         'addRead' => ['id','type'],

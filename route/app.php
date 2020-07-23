@@ -16,6 +16,7 @@ Route::rule('/register', 'Login/register');
 Route::rule('/index', 'Login/index');
 
 // 后台文章管理
+Route::rule('/upload', 'ArtAdmin/uploader');
 Route::rule('/artList', 'ArtAdmin/artList');
 Route::rule('/addArt', 'ArtAdmin/addArt');
 Route::rule('/delArt', 'ArtAdmin/delArt');

@@ -127,9 +127,11 @@ class ArtWeb extends Base
     public function rankList() {
         $rank = Cache::zrevrange($this->rankkey,0,9,true);
         foreach ($rank as $key => $value) {
+
+            $title = Cache::hmget($this->artKey.$key,['title']);
             $rankList[] = array(
                 'id' => $key,
-                'title' => Cache::hmget($this->artKey.$key,'title'),
+                'title' => $title['title'],
                 'read_num' => $value
             );
         }

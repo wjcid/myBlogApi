@@ -105,5 +105,5 @@ abstract class Base
     protected function getUid(){
         $jwtAuth = JwtAuth::getInstance();
         return $jwtAuth->getUid();
-    }
+    }  
 }

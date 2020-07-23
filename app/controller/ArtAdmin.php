@@ -9,6 +9,7 @@ namespace app\controller;
 use app\model\Article;
 use think\exception\ValidateException;
 use think\facade\{Request, Log};
+use app\facade\Qiniu;
 
 class ArtAdmin extends Base
 {
@@ -17,7 +18,7 @@ class ArtAdmin extends Base
      * @var array
      */
     protected $middleware = [
-        'app\middleware\Api' => ['except' => []],
+        'app\middleware\Api' => ['except' => ['uploader']],
     ];
 
     protected $model;
@@ -29,7 +30,27 @@ class ArtAdmin extends Base
     public function __construct() {
         $this->model = new Article;
     }
-
+    /**
+     * 上传文件
+     * @return mixed
+     */
+    public function uploader() {
+        $data_type = Request::param('genre');
+        $file = request()->file('file');
+        // 上传到本地服务器
+        try {
+            validate(['file'=>'filesize:10240000|fileExt:doc,docx,xlsx,xls,txt,pdf,jpg,png'])
+                ->check(['file'=>$file]);
+            $savename = \think\facade\Filesystem::putFile($data_type, $file);
+            $filename = strrchr($savename,'\\');// “/”最后出现的位置
+            $filename = substr($filename,1);
+            $filename = Qiniu::upload($file, $filename);
+            $this->result(['url' => $filename], 1, '上传成功');
+        } catch (\think\exception\ValidateException $e) {
+            $this->result([], 0, $e->getMessage());
+        }
+        
+    }
     /**
      * @api {post} /ArtAdmin/artList 01、文章列表
      * @apiGroup ArtAdmin
@@ -86,27 +107,29 @@ class ArtAdmin extends Base
     public function addArt()
     {
         $paramInfo = Request::param();
-        try {
-            validate(\app\validate\Article::class)
-                ->scene('add')
-                ->check($paramInfo);
-        } catch (ValidateException $e) {
-            // 验证失败 输出错误信息
-            $this->result(['apiParam' => 'error'], 10300, $e->getError());
-        }
+        $str = $paramInfo['content'];
+        $str1 = str_replace('spellcheck="false">','spellcheck="false"><code>',$str);
+        $str2 = str_replace('</pre>','</code></pre>',$str1);
         $data = array(
             'title' => $paramInfo['title'],
             'pic_url' => $paramInfo['pic_url'],
-            'content' => $paramInfo['content'],
-            'tag' => $paramInfo['tag'],
+            'content' => $str2,
+            'tag' => implode(',', $paramInfo['tags']),
             'type' => $paramInfo['type'],
             'read_num' => 0,
             'like_num' => 0,
             'isdel' => 0,
             'uid' => $this->getUid(),
-            'uploader' => $paramInfo['uploader']
+            'uploader' => isset($paramInfo['uploader'])? $paramInfo['uploader'] : ''
         );
-        
+        try {
+            validate(\app\validate\Article::class)
+                ->scene('add')
+                ->check($data);
+        } catch (ValidateException $e) {
+            // 验证失败 输出错误信息
+            $this->result(['apiParam' => 'error'], 10300, $e->getError());
+        }
         $row = $this->model->addArt($data);
         $logInfo = array(
             'uid' => $this->getUid(),
@@ -179,23 +202,24 @@ class ArtAdmin extends Base
     public function editArt()
     {
         $paramInfo = Request::param();
-        try {
-            validate(\app\validate\Article::class)
-                ->scene('edit')
-                ->check($paramInfo);
-        } catch (ValidateException $e) {
-            // 验证失败 输出错误信息
-            $this->result(['apiParam' => 'error'], 10300, $e->getError());
-        }
         $data = array(
             'id' => $paramInfo['id'],
             'title' => $paramInfo['title'],
             'pic_url' => $paramInfo['pic_url'],
             'content' => $paramInfo['content'],
-            'tag' => $paramInfo['tag'],
+            'tag' => implode(',', $paramInfo['tags']),
             'type' => $paramInfo['type'],
             'uploader' => isset($paramInfo['uploader'])? $paramInfo['uploader'] : ''
         );
+        try {
+            validate(\app\validate\Article::class)
+                ->scene('edit')
+                ->check($data);
+        } catch (ValidateException $e) {
+            // 验证失败 输出错误信息
+            $this->result(['apiParam' => 'error'], 10300, $e->getError());
+        }
+        
         $row = $this->model->artEdit($data);
         $logInfo = array(
             'uid' => $this->getUid(),

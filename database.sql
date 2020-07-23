@@ -21,11 +21,12 @@ create table `bl_article` (
     `content` text not null,
 	`read_num` tinyint not null,
     `like_num` tinyint not null,
-    `tag` varchar(10) not null,
+    `tag` varchar(30) not null,
     `type` enum("1","2","3") not null,
     `create_time` int(11) not null,
     `update_time` int(11) not null,
     `uid` int(11) not null,
     `uploader` varchar(100) not null,
+    `isdel` enum("0","1") not null,
     UNIQUE KEY `title` (`title`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
