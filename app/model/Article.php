@@ -75,7 +75,7 @@ class Article extends Model
             $key = $this->cacheKey($art['type']);
             $artkey = $key['artkey'].$art['id'];
             Cache::del($artkey);
-            // 写入排行榜有序集合
+            // 移出排行榜
             Cache::zrem($key['rankkey'], $art['id']);
         }
         return $row;
@@ -91,7 +91,10 @@ class Article extends Model
         $arr['read_num'] = $data->read_num;
         return $arr;
     }
-
+    //查询文章上下文
+    public function udArt($id) {
+        
+    }
     // 添加文章
     public function addArt($data) {
         $info = Article::create($data);

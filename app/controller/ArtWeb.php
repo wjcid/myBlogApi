@@ -82,6 +82,8 @@ class ArtWeb extends Base
     public function addRead() {
         $this->valiParam('addRead');
         $member = $this->paramInfo['id'];
+        //判断该ID 是否存在（防止无效ID刷榜）
+
         //将有序集合成员$zkey 的值加1
         Cache::zincrby($this->rankkey,1,$member);
         $this->result([], 10200, 'success');
@@ -112,7 +114,39 @@ class ArtWeb extends Base
     }
 
     /**
-     * @api {post} /ArtWeb/rankList 03、文章排行榜
+     * @api {post} /ArtWeb/tagArtList 03、文章列表（按标签分类）
+     * @apiGroup ArtWeb
+     * @apiVersion 1.0.0
+     * @apiDescription 前端文章列表接口
+
+     * @apiParam (请求参数：) {string}           type 文章类型
+     * @apiParam (请求参数：) {string}           tagname 标签名
+
+     * @apiSuccessExample {json} 成功示例
+     * {"code":10200,"msg":"获取数据成功","time":1594969422,"data":{"total":0,"list":[]}}
+     * @apiErrorExample {json} 失败示例
+     * {"code":10300,"msg":"类型只支持选择1|2|3","time":1594969705,"data":{"apiParam":"error"}}
+     */
+    public function tagArtList() {    
+        // 获取所有ID
+        $artids = Cache::smembers('artid:'.$this->paramInfo['type']);
+        //获取改类型所有文章列表
+        $info = array();
+        foreach ($artids as $value) {
+            $info[] = Cache::hgetall($this->artKey.$value);
+        }
+        $arr = array();
+        foreach ($info as $key => $value) {
+            if ($value['tag'] == $this->paramInfo['tagname']) {
+                $arr[] = $value;
+            }
+        }
+        $this->result(['artList'=>$arr], 10200, 'success');
+        
+    }
+
+    /**
+     * @api {post} /ArtWeb/rankList 04、文章排行榜
      * @apiGroup ArtWeb
      * @apiVersion 1.0.0
      * @apiDescription 文章排行榜接口
@@ -139,7 +173,7 @@ class ArtWeb extends Base
     }
 
     /**
-     * @api {post} /ArtWeb/artContent 04、文章内容
+     * @api {post} /ArtWeb/artContent 05、文章内容
      * @apiGroup ArtWeb
      * @apiVersion 1.0.0
      * @apiDescription 前端文章详细内容接口

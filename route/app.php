@@ -25,5 +25,6 @@ Route::rule('/editArt', 'ArtAdmin/editArt');
 // 前端页面展示数据
 Route::rule('/addRead', 'ArtWeb/addRead');
 Route::rule('/artWebList', 'ArtWeb/artList');
+Route::rule('/tagArtList', 'ArtWeb/tagArtList');
 Route::rule('/rankList', 'ArtWeb/rankList');
 Route::rule('/artContent', 'ArtWeb/artContent');

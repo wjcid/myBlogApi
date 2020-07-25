@@ -42,7 +42,8 @@ class ArtAdmin extends Base
             validate(['file'=>'filesize:10240000|fileExt:doc,docx,xlsx,xls,txt,pdf,jpg,png'])
                 ->check(['file'=>$file]);
             $savename = \think\facade\Filesystem::putFile($data_type, $file);
-            $filename = strrchr($savename,'\\');// “/”最后出现的位置
+            $savename=str_replace('\\','/',$savename);
+            $filename = strrchr($savename,'/');// “/”最后出现的位置
             $filename = substr($filename,1);
             $filename = Qiniu::upload($file, $filename);
             $this->result(['url' => $filename], 1, '上传成功');
