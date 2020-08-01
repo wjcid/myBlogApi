@@ -11,7 +11,8 @@ use think\facade\Env;
 
 class Qiniu
 {
-    public function upload($file,$filename){
+    public function upload($file,$filename)
+    {
         $filename=str_replace('\\','/',$filename);
         $accessKey=Env::get('qiniu.qiniu_access_key');
         $secretKey=Env::get('qiniu.qiniu_secret_key');

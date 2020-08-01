@@ -84,12 +84,17 @@ class Article extends Model
     // 获取单篇文章信息
     public function singArt($id) {
         $data = Article::find($id);
-        $arr['title'] = $data->title;
-        $arr['pic_url'] = $data->pic_url;
-        $arr['content'] = $data->content;
-        $arr['tag'] = $data->tag;
-        $arr['read_num'] = $data->read_num;
-        return $arr;
+        if ($data === null) {
+           return [];
+        }else{
+            $arr['title'] = $data->title;
+            $arr['pic_url'] = $data->pic_url;
+            $arr['content'] = $data->content;
+            $arr['tag'] = $data->tag;
+            $arr['read_num'] = $data->read_num;
+            return $arr;
+        }
+        
     }
     //查询文章上下文
     public function udArt($id) {

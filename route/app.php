@@ -28,3 +28,5 @@ Route::rule('/artWebList', 'ArtWeb/artList');
 Route::rule('/tagArtList', 'ArtWeb/tagArtList');
 Route::rule('/rankList', 'ArtWeb/rankList');
 Route::rule('/artContent', 'ArtWeb/artContent');
+
+Route::rule('/ceshi', 'ArtWeb/ceshi');

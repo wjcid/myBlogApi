@@ -121,7 +121,7 @@ class ArtAdmin extends Base
             'like_num' => 0,
             'isdel' => 0,
             'uid' => $this->getUid(),
-            'uploader' => isset($paramInfo['uploader'])? $paramInfo['uploader'] : ''
+            'uploader' => $paramInfo['uploader'] ?? ''
         );
         try {
             validate(\app\validate\Article::class)
@@ -203,14 +203,17 @@ class ArtAdmin extends Base
     public function editArt()
     {
         $paramInfo = Request::param();
+        $str = $paramInfo['content'];
+        $str1 = str_replace('spellcheck="false">','spellcheck="false"><code>',$str);
+        $str2 = str_replace('</pre>','</code></pre>',$str1);
         $data = array(
             'id' => $paramInfo['id'],
             'title' => $paramInfo['title'],
             'pic_url' => $paramInfo['pic_url'],
-            'content' => $paramInfo['content'],
+            'content' => $str2,
             'tag' => implode(',', $paramInfo['tags']),
             'type' => $paramInfo['type'],
-            'uploader' => isset($paramInfo['uploader'])? $paramInfo['uploader'] : ''
+            'uploader' => $paramInfo['uploader'] ?? ''
         );
         try {
             validate(\app\validate\Article::class)

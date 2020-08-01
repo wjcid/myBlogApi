@@ -8,6 +8,7 @@ namespace app\controller;
 
 use think\exception\ValidateException;
 use think\facade\{Request, Cache};
+use app\facade\RedisLock;
 
 class ArtWeb extends Base
 {
@@ -16,7 +17,7 @@ class ArtWeb extends Base
      * @var array
      */
     protected $middleware = [
-        'app\middleware\Api' => ['except' => ['addRead','artList','rankList','artContent']],
+        'app\middleware\Api' => ['except' => ['addRead','artList','rankList','artContent','tagArtList','ceshi']],
     ];
 
     //请求参数
@@ -48,6 +49,25 @@ class ArtWeb extends Base
                 $this->artKey = 'liveArt:';
                 $this->rankkey = 'lirank';
                 break;
+        }
+    }
+    public function ceshi() {
+        $key = 'lock1';
+        for ($i=0; $i < 99; $i++) { 
+            $random = rand(1, 100000);
+            $expire = 1;
+            $lock = RedisLock::acquire_lock($key,$random,$expire);
+            if ($lock) {
+                $model = new \app\model\Article;
+                $id = 56;
+                $arr = $model->singArt($id);
+                
+                $del = RedisLock::release_lock($key,$random);
+                dump($del);
+            } else {
+                dump('lock no');
+                break;
+            }
         }
     }
     /**
@@ -83,7 +103,7 @@ class ArtWeb extends Base
         $this->valiParam('addRead');
         $member = $this->paramInfo['id'];
         //判断该ID 是否存在（防止无效ID刷榜）
-
+        
         //将有序集合成员$zkey 的值加1
         Cache::zincrby($this->rankkey,1,$member);
         $this->result([], 10200, 'success');
@@ -137,10 +157,11 @@ class ArtWeb extends Base
         }
         $arr = array();
         foreach ($info as $key => $value) {
-            if ($value['tag'] == $this->paramInfo['tagname']) {
+            if (in_array($this->paramInfo['tagname'],explode(',', $value['tag']))) {
                 $arr[] = $value;
             }
         }
+
         $this->result(['artList'=>$arr], 10200, 'success');
         
     }
@@ -189,6 +210,33 @@ class ArtWeb extends Base
         $this->valiParam('addRead');
         $model = new \app\model\Article;
         $arr = $model->singArt($this->paramInfo['id']);
-        $this->result(['content'=>$arr], 10200, 'success');
+        // 获取所有ID
+        $artids = Cache::smembers('artid:'.$this->paramInfo['type']);
+        $key = array_search($this->paramInfo['id'],$artids);
+
+        if ($key == 0) {
+            $last_title = '已经在第一篇了';
+            $last_id = $this->paramInfo['id'];
+        }else{
+            $last_key = $key-1;
+            $last_id = $artids[$last_key];
+            $last_title = Cache::hmget( $this->artKey.$last_id,['title'])['title'];
+        }
+
+        $next_key = $key+1;
+        if (!array_key_exists($next_key,$artids)) {
+            $next_title = '已经是最后一篇了';
+            $next_id = $this->paramInfo['id'];
+        }else{
+            $next_id = $artids[$next_key];
+            $next_title = Cache::hmget( $this->artKey.$next_id,['title'])['title'];
+        }
+        $ud = array(
+            'last_id' => $last_id,
+            'last_title' => $last_title,
+            'next_id' => $next_id,
+            'next_title' => $next_title
+        );
+        $this->result(['content'=>$arr, 'ud'=>$ud], 10200, 'success');
     }
 }

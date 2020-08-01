@@ -16,7 +16,8 @@ class Aes {
      * @param String str 需解密字符串
      * @return String
      */
-    public function decrypt($str) {
+    public function decrypt($str) 
+    {
         $decode = openssl_decrypt($str, 'AES-128-CBC', $this->key, 0, $this->iv);
         $decode = rtrim($decode, "\0");
         return $decode;
@@ -26,7 +27,8 @@ class Aes {
      * @param String str 需加密字符串
      * @return String
      */
-    public function encrypt($str) {
+    public function encrypt($str) 
+    {
         $encode = openssl_encrypt($str, 'AES-128-CBC', $this->key, 0, $this->iv);
         $encode = rtrim($encode, "\0");
         return $encode;
