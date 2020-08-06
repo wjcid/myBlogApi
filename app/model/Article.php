@@ -96,10 +96,7 @@ class Article extends Model
         }
         
     }
-    //查询文章上下文
-    public function udArt($id) {
-        
-    }
+
     // 添加文章
     public function addArt($data) {
         $info = Article::create($data);
@@ -119,5 +116,25 @@ class Article extends Model
         // 写入排行榜有序集合
         Cache::zadd($key['rankkey'], 0, $info->id);
         return $info->id;
+    }
+
+    //清理软删除数据
+    public function delData() {
+        $list = Article::where('isdel', 1)->select();
+        $data = [];
+        foreach ($list as $key => $value) {
+            $data[] = array(
+                'title'=>$value['title'],
+                'pic_url'=>$value['pic_url']
+            );
+        }
+        $row = Article::destroy(function($query){
+        $query->where('isdel',1);
+        });
+        $data = array(
+            'list'=> $data,
+            'row' => $row
+        );
+        return $data;
     }
 }

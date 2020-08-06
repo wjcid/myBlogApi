@@ -37,13 +37,13 @@ class ArtAdmin extends Base
     public function uploader() {
         $data_type = Request::param('genre');
         $file = request()->file('file');
-        // 上传到本地服务器
+        // 上传到本地服务器及七牛云
         try {
             validate(['file'=>'filesize:10240000|fileExt:doc,docx,xlsx,xls,txt,pdf,jpg,png'])
                 ->check(['file'=>$file]);
             $savename = \think\facade\Filesystem::putFile($data_type, $file);
             $savename=str_replace('\\','/',$savename);
-            $filename = strrchr($savename,'/');// “/”最后出现的位置
+            $filename = strrchr($savename,'/');// “/”最后出现的位置返回从该位置到字符串结尾的所有字符
             $filename = substr($filename,1);
             $filename = Qiniu::upload($file, $filename);
             $this->result(['url' => $filename], 1, '上传成功');
@@ -238,5 +238,32 @@ class ArtAdmin extends Base
             $this->result([], 10400, '文章修改错误');
         }
         
+    }
+
+    /**
+    * 定时清理 数据表中的软删除数据及无效文件 0 22 * * 7 /bin/sh /var/www/sh/blog_del.sh
+    * @return
+    */
+    public static function delData(){
+        $art = new Article;
+        $data = $art->delData();
+        $qiniu = [];
+        $info = [];
+        foreach ($data['list'] as $key => $value) {
+            $info[] = $value['title'];
+            if ($value['pic_url'] !== './') {
+                //删除本地文件 没记录，懒得删，注释了 
+                //unlink($value['pic_url'])
+                $qiniu[] = Qiniu::delFile($value['pic_url']);
+            }
+        }
+        $arr = array(
+            'row' => $data['row'],
+            'time' => time(),
+            'qiniu'=> $qiniu,
+            'title' => $info
+
+        );
+        Log::write($arr, 'sh_del');
     }
 }

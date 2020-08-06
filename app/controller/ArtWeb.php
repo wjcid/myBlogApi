@@ -1,14 +1,15 @@
 <?php
 /**
  * +----------------------------------------------------------------------
- * | 前端页面展示接口
+ * | 前端页面展示数据接口
  * +----------------------------------------------------------------------
  */
 namespace app\controller;
 
 use think\exception\ValidateException;
 use think\facade\{Request, Cache};
-use app\facade\RedisLock;
+use app\facade\{RedisLock, Qiniu};
+
 
 class ArtWeb extends Base
 {
@@ -51,25 +52,7 @@ class ArtWeb extends Base
                 break;
         }
     }
-    public function ceshi() {
-        $key = 'lock1';
-        for ($i=0; $i < 99; $i++) { 
-            $random = rand(1, 100000);
-            $expire = 1;
-            $lock = RedisLock::acquire_lock($key,$random,$expire);
-            if ($lock) {
-                $model = new \app\model\Article;
-                $id = 56;
-                $arr = $model->singArt($id);
-                
-                $del = RedisLock::release_lock($key,$random);
-                dump($del);
-            } else {
-                dump('lock no');
-                break;
-            }
-        }
-    }
+
     /**
      * 参数验证
      * @access protected
@@ -103,10 +86,16 @@ class ArtWeb extends Base
         $this->valiParam('addRead');
         $member = $this->paramInfo['id'];
         //判断该ID 是否存在（防止无效ID刷榜）
+        $isset = Cache::sismember('artid:'.$this->paramInfo['type'],$member);
+        if ($isset) {
+            //将有序集合成员$zkey 的值加1
+            Cache::zincrby($this->rankkey,1,$member);
+            $this->result([], 10200, 'success');
+        } else {
+            $this->result([], 10400, 'article no exist');
+        }
         
-        //将有序集合成员$zkey 的值加1
-        Cache::zincrby($this->rankkey,1,$member);
-        $this->result([], 10200, 'success');
+        
     }
 
     /**
@@ -238,5 +227,25 @@ class ArtWeb extends Base
             'next_title' => $next_title
         );
         $this->result(['content'=>$arr, 'ud'=>$ud], 10200, 'success');
+    }
+
+    public function ceshi() {
+        $key = 'lock1';
+        for ($i=0; $i < 99; $i++) { 
+            $random = rand(1, 100000);
+            $expire = 1;
+            $lock = RedisLock::acquire_lock($key,$random,$expire);
+            if ($lock) {
+                $model = new \app\model\Article;
+                $id = 56;
+                $arr = $model->singArt($id);
+                
+                $del = RedisLock::release_lock($key,$random);
+                dump($del);
+            } else {
+                dump('lock no');
+                break;
+            }
+        }
     }
 }
