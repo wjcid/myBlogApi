@@ -1,7 +1,7 @@
 create database `blog_data`;
 
 create table `bl_users` (
-	`id` tinyint(11) unsigned not null auto_increment PRIMARY KEY,
+	`id` int(11) unsigned not null auto_increment PRIMARY KEY,
 	`account` varchar(16) not null,
 	`phone` char(11) not null,
     `password` varchar(60) not null,
@@ -30,3 +30,8 @@ create table `bl_article` (
     `isdel` enum("0","1") not null,
     UNIQUE KEY `title` (`title`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+select DATE_ADD(concat(tyear,'-',tmonth,'-00 00:00:00'),INTERVAL 1 MONTH) as tom,tyear,tmonth,sale_money from sale;
+
+select DATE_ADD(concat(tyear,'-',tmonth,'-01'),INTERVAL 1 MONTH) as tom,tyear,tmonth,sale_money
+from sale

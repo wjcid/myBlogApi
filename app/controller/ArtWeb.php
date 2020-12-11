@@ -220,6 +220,7 @@ class ArtWeb extends Base
             $next_id = $artids[$next_key];
             $next_title = Cache::hmget( $this->artKey.$next_id,['title'])['title'];
         }
+        
         $ud = array(
             'last_id' => $last_id,
             'last_title' => $last_title,

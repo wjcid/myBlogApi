@@ -17,7 +17,7 @@ class JwtAuth
     private $token;
 
     // jwt 过期时间
-    private $expTime = 3600;
+    private $expTime = 3600*16;
 
     // claim iss
     private $iss = 'api.phpapi.com';
