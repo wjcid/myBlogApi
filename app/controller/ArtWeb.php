@@ -7,9 +7,8 @@
 namespace app\controller;
 
 use think\exception\ValidateException;
-use think\facade\{Request, Cache};
+use think\facade\{Db, Request, Cache};
 use app\facade\{RedisLock, Qiniu};
-
 
 class ArtWeb extends Base
 {
@@ -18,7 +17,7 @@ class ArtWeb extends Base
      * @var array
      */
     protected $middleware = [
-        'app\middleware\Api' => ['except' => ['addRead','artList','rankList','artContent','tagArtList','ceshi']],
+        'app\middleware\Api' => ['except' => ['addRead','artList','rankList','artContent','tagArtList','ceshi','visits']],
     ];
 
     //请求参数
@@ -70,6 +69,44 @@ class ArtWeb extends Base
         }
     }
     /**
+     * @api {post} /ArtWeb/addRead 01、记录访问信息
+     * @apiGroup ArtWeb
+     * @apiVersion 1.0.0
+     * @apiDescription 访问信息接口
+
+     * @apiParam (请求参数：) {number}           id 文章ID
+
+     * @apiSuccessExample {json} 成功示例
+     * {"code":10200,"msg":"获取数据成功","time":1594969422,"data":{"total":0,"list":[]}}
+     * @apiErrorExample {json} 失败示例
+     * {"code":10300,"msg":"类型只支持选择1|2|3","time":1594969705,"data":{"apiParam":"error"}}
+     */
+    public function visits() {
+
+        $source = isMobile() === true ? 'MOBILE':'PC';
+        $data = array(
+            'create_time' => date('Y-m-d H:i:s',time()),
+            'create_ip'   => ip2long(Request::ip()),
+            'source'      => $source
+        );
+        $create_id = Db::table('bl_visits')->insertGetId($data);
+
+        //判断计数器 是否存在（存在+1，不存在写入）
+        if (Cache::get('visits_num') !== null) {
+            
+            Cache::incr('visits_num');
+            $visits_num = Cache::get('visits_num');
+            $this->result(['visits_num' => $visits_num], 10200, 'success');
+        } else {
+            // 自增ID 且不会出现删减 可直接使用
+            Cache::set('visits_num',$create_id);
+            $this->result(['visits_num' => $create_id], 10200, 'success');
+        }
+        
+        
+    }
+
+    /**
      * @api {post} /ArtWeb/addRead 01、添加文章阅读量
      * @apiGroup ArtWeb
      * @apiVersion 1.0.0
@@ -90,6 +127,11 @@ class ArtWeb extends Base
         if ($isset) {
             //将有序集合成员$zkey 的值加1
             Cache::zincrby($this->rankkey,1,$member);
+            // read_num 字段加 1
+            Db::table('bl_article')
+                ->where('id', $member)
+                ->inc('read_num')
+                ->update();
             $this->result([], 10200, 'success');
         } else {
             $this->result([], 10400, 'article no exist');

@@ -23,6 +23,7 @@ Route::rule('/delArt', 'ArtAdmin/delArt');
 Route::rule('/editArt', 'ArtAdmin/editArt');
 
 // 前端页面展示数据
+Route::rule('/visits', 'ArtWeb/visits');
 Route::rule('/addRead', 'ArtWeb/addRead');
 Route::rule('/artWebList', 'ArtWeb/artList');
 Route::rule('/tagArtList', 'ArtWeb/tagArtList');
@@ -30,3 +31,8 @@ Route::rule('/rankList', 'ArtWeb/rankList');
 Route::rule('/artContent', 'ArtWeb/artContent');
 
 Route::rule('/ceshi', 'ArtWeb/ceshi');
+
+Route::rule('/ahmset', 'CreateCache/ahmset');
+Route::rule('/addIdSet', 'CreateCache/addIdSet');
+Route::rule('/addRank', 'CreateCache/addRank');
+Route::rule('/ipstr', 'CreateCache/ipstr');

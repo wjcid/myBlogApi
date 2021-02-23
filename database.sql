@@ -31,7 +31,9 @@ create table `bl_article` (
     UNIQUE KEY `title` (`title`)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-select DATE_ADD(concat(tyear,'-',tmonth,'-00 00:00:00'),INTERVAL 1 MONTH) as tom,tyear,tmonth,sale_money from sale;
-
-select DATE_ADD(concat(tyear,'-',tmonth,'-01'),INTERVAL 1 MONTH) as tom,tyear,tmonth,sale_money
-from sale
+create table `bl_visits` (
+    `id` tinyint(11) unsigned not null auto_increment PRIMARY KEY,
+    `create_time` datetime not null,
+    `create_ip` int unsigned not null,
+    `source` varchar(50) not null comment "PC端/移动端"
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;

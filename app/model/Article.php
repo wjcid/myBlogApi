@@ -83,15 +83,16 @@ class Article extends Model
 
     // 获取单篇文章信息
     public function singArt($id) {
-        $data = Article::find($id);
+        $data = Article::find($id)->toArray();
         if ($data === null) {
            return [];
         }else{
-            $arr['title'] = $data->title;
-            $arr['pic_url'] = $data->pic_url;
-            $arr['content'] = $data->content;
-            $arr['tag'] = $data->tag;
-            $arr['read_num'] = $data->read_num;
+            $arr['title'] = $data['title'];
+            $arr['pic_url'] = $data['pic_url'];
+            $arr['content'] = $data['content'];
+            $arr['tag'] = $data['tag'];
+            $arr['read_num'] = $data['read_num'];
+            $arr['create_time'] = $data['create_time'];
             return $arr;
         }
         
